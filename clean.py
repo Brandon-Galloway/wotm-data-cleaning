@@ -80,7 +80,7 @@ def main():
     # @END remove_null_or_redundant_fields
 
     # @BEGIN perform_easy_quality_enhancements
-    # @IN reduced_field_menu_data
+    # @IN reduced_field_menu_page_data
     # @OUT menus @AS simply_cleaned_menu_data
     menus = perform_easy_quality_enhancements(menus)
     # @END perform_easy_quality_enhancements
@@ -111,18 +111,31 @@ def main():
     menus, menu_items = address_outlier_values(menus, menu_pages, menu_items, dishes)
     # @END address_outlier_values
 
-    # @BEGIN recalculate_fields
-    # @IN outlier_addressed_menu_data
+    # Repeat
+    # @BEGIN remove_orphan_records
+    # @IN fk_updated_menu_data
     # @IN reduced_field_menu_page_data
-    # @IN outlier_address_menu_item_data
-    # @IN denulled_dish_data
+    # @IN outlier_addressed_menu_item_data
+    # @IN special_character_adjusted_dish_data
+    # @OUT menus @AS re_reduced_menu_data
+    # @OUT menu_pages @AS re_reduced_menu_page_data
+    # @OUT menu_items @AS re_reduced_menu_item_data
+    # @OUT dishes @AS re_reduced_dish_data
+    menus, menu_pages, menu_items, dishes = remove_orphan_records(menus, menu_pages, menu_items, dishes)
+    # @END remove_orphan_records
+
+    # @BEGIN recalculate_fields
+    # @IN re_reduced_menu_data
+    # @IN re_reduced_menu_page_data
+    # @IN re_reduced_menu_item_data
+    # @IN re_reduced_dish_data
     # @OUT menus @AS recalculated_menu_data
     # @OUT dishes @AS recalculated_dish_data
     menus, dishes = recalculate_fields(menus, menu_pages, menu_items, dishes)
     # @END recalculate_fields
 
     # @BEGIN verify_core_fields
-    # @IN outlier_addressed_menu_item_data
+    # @IN re_reduced_menu_item_data
     verify_core_fields(menu_items)
     # @END verify_core_fields
 
@@ -136,41 +149,30 @@ def main():
 
     # @BEGIN calculate_dish_menu_appearances
     # @IN fk_updated_menu_data
-    # @IN reduced_field_menu_page_data
-    # @IN outlier_addressed_menu_item_data
+    # @IN re_reduced_menu_page_data
+    # @IN re_reduced_menu_item_data
     # @IN recalculated_dish_data
     # @OUT dishes @AS appearance_recalculated_dish_data
     dishes = calculate_dish_menu_appearances(menus, menu_pages, menu_items, dishes)
     # @END calculate_dish_menu_appearances
 
-    # Repeat
-    # @BEGIN remove_orphan_records
-    # @IN fk_updated_menu_data
-    # @IN reduced_field_menu_page_data
-    # @IN outlier_addressed_menu_item_data
-    # @IN appearance_recalculated_dish_data
-    # @OUT menus @AS re_reduced_menu_data
-    # @OUT menu_pages @AS re_reduced_menu_page_data
-    # @OUT menu_items @AS re_reduced_menu_item_data
-    # @OUT dishes @AS re_reduced_dish_data
-    menus, menu_pages, menu_items, dishes = remove_orphan_records(menus, menu_pages, menu_items, dishes)
-    # @END remove_orphan_records
-
     # @BEGIN generate_ending_report
-    # @IN re_reduced_menu_data
+    # @IN fk_updated_menu_data
     # @IN re_reduced_menu_page_data
     # @IN re_reduced_menu_item_data
-    # @IN re_reduced_dish_data
+    # @IN appearance_recalculated_dish_data
     # @OUT ending_data_quality_report @URI file:data/clean/reports/ending_data_quality_report.pdf
     generate_data_quality_report(menus, menu_pages, menu_items, dishes, "ending_data_quality_report")
     # @END generate_ending_report
 
     # Export
     # @BEGIN save_cleaned_dataframes
-    # @IN re_reduced_menu_data
+    # @IN fk_updated_menu_data
     # @IN re_reduced_menu_page_data
     # @IN re_reduced_menu_item_data
-    # @IN re_reduced_dish_data
+    # @IN appearance_recalculated_dish_data
+    # @IN menu_descriptions_data
+    # @IN menu_description_data
     # @OUT menus @URI file:data/clean/Menu.csv
     # @OUT menu_pages @URI file:data/clean/MenuPage.csv
     # @OUT menu_items @URI file:data/clean/MenuItem.csv
@@ -222,7 +224,7 @@ def remove_orphan_records(menus, menu_pages, menu_items, dishes):
     total_deleted += removed
 
     if total_deleted > 0:
-        remove_orphan_records(menus, menu_pages, menu_items, dishes)
+        return remove_orphan_records(menus, menu_pages, menu_items, dishes)
 
     return menus, menu_pages, menu_items, dishes
 

@@ -44,9 +44,8 @@ def generate_data_quality_report(menus, menu_pages, menu_items, dishes, fileName
         count = df_left.shape[0] - df_filtered.shape[0]
         return count
 
-    def get_special_character_records(df, col):
-        special_characters = r'?[]\.&,%"/()-'
-        special_char_pattern = f'[{re.escape(special_characters)}]'
+    def get_special_character_records(df, col,special_chars):
+        special_char_pattern = f'[{re.escape(special_chars)}]'
         filtered_records = df[df[col].notna()].copy()
         special_char_records = filtered_records[col].str.contains(special_char_pattern, regex=True)
         filtered_records['contains_special_chars'] = special_char_records
@@ -197,15 +196,17 @@ def generate_data_quality_report(menus, menu_pages, menu_items, dishes, fileName
     data_quality_data['Orphan Data']['Orphan Record Count (Dishes without Items)'] = removed
 
     # Orphan Counts
-    data_quality_data['Null Columns']['Null Column Count (Menu)'] = int(menus.isna().all().sum())
-    data_quality_data['Null Columns']['Null Column Count (MenuPage)'] = int(menu_pages.isna().all().sum())
-    data_quality_data['Null Columns']['Null Column Count (MenuItem)'] = int(menu_items.isna().all().sum())
-    data_quality_data['Null Columns']['Null Column Count (Dish)'] = int(dishes.isna().all().sum())
+    data_quality_data['Null Columns']['Null Column Count (Menu)'] = int(menus.copy().isna().all().sum())
+    data_quality_data['Null Columns']['Null Column Count (MenuPage)'] = int(menu_pages.copy().isna().all().sum())
+    data_quality_data['Null Columns']['Null Column Count (MenuItem)'] = int(menu_items.copy().isna().all().sum())
+    data_quality_data['Null Columns']['Null Column Count (Dish)'] = int(dishes.copy().isna().all().sum())
 
     # Special Character Issues
-    data_quality_data['Special Characters']['Effected Records (Menu: currency)'] = get_special_character_records(menus, 'currency').shape[0]
-    data_quality_data['Special Characters']['Effected Records (Menu: currency_symbol)'] = get_special_character_records(menus, 'currency_symbol').shape[0]
-    data_quality_data['Special Characters']['Effected Records (Dish: name)'] = get_special_character_records(dishes, 'name').shape[0]
+    data_quality_data['Special Characters']['Effected Records (Menu: currency)'] = get_special_character_records(menus.copy(), 'currency',r'?[]\.&,%"/()-').shape[0]
+    data_quality_data['Special Characters']['Effected Records (Menu: currency_symbol)'] = get_special_character_records(menus.copy(), 'currency_symbol',r'?[]\.&,%"/()-').shape[0]
+    data_quality_data['Special Characters']['Effected Records (Dish: name)'] = get_special_character_records(dishes.copy(), 'name', r'?[]\.&,%"/()-').shape[0]
+    data_quality_data['Special Characters']['Effected Records [Excluding ,] (Dish: name)'] = get_special_character_records(dishes.copy(), 'name', r'?[]\.&%"/()-').shape[0]
+
 
     # Odd Data
     data_quality_data['Odd Data']['Null Priced Menu Items'] = menu_items[menu_items['price'].isna()].shape[0]
@@ -214,9 +215,9 @@ def generate_data_quality_report(menus, menu_pages, menu_items, dishes, fileName
 
     # Recalculated Fields
     data_quality_data['Recalculated Fields']['Incorrect Menu Page Counts'] = get_incorrect_menu_page_count(menus.copy(), menu_pages.copy())
-    data_quality_data['Recalculated Fields']['Incorrect Menu Dish Counts'] = get_incorrect_menu_dish_counts(menus, menu_pages, menu_items)
-    data_quality_data['Recalculated Fields']['Incorrect Dish First Appeared'], data_quality_data['Incorrect Dish Last Appeared'] = get_incorrect_dish_appearances(menus, menu_pages, menu_items, dishes)
-    data_quality_data['Recalculated Fields']['Incorrect Dish Low Price'], data_quality_data['Incorrect Dish High Price'] = get_incorrect_dish_prices(menu_items, dishes)
+    data_quality_data['Recalculated Fields']['Incorrect Menu Dish Counts'] = get_incorrect_menu_dish_counts(menus.copy(), menu_pages.copy(), menu_items.copy())
+    data_quality_data['Recalculated Fields']['Incorrect Dish First Appeared'], data_quality_data['Incorrect Dish Last Appeared'] = get_incorrect_dish_appearances(menus.copy(), menu_pages.copy(), menu_items.copy(), dishes.copy())
+    data_quality_data['Recalculated Fields']['Incorrect Dish Low Price'], data_quality_data['Incorrect Dish High Price'] = get_incorrect_dish_prices(menu_items.copy(), dishes.copy())
 
     # XPOS/YPOS Data
     pd.options.display.float_format = '{:.3f}'.format
@@ -226,7 +227,7 @@ def generate_data_quality_report(menus, menu_pages, menu_items, dishes, fileName
     menu_items['created_at'] = pd.to_datetime(menu_items['created_at'], errors='coerce')
     data_quality_data['Invalid Menu Item Updated At Values'] = menu_items[menu_items['updated_at'] < menu_items['created_at']].shape[0]
 
-    data_quality_data['Incorrect Dish First Appearance'], data_quality_data['Incorrect Dish Last Appearance'] = get_incorrect_dish_menu_appearances(menus, menu_pages, menu_items, dishes)
+    data_quality_data['Incorrect Dish First Appearance'], data_quality_data['Incorrect Dish Last Appearance'] = get_incorrect_dish_menu_appearances(menus.copy(), menu_pages.copy(), menu_items.copy(), dishes.copy())
 
     # Generate Report
     generate_pdf("Data Quality Report", data_quality_data, filename=fileName+'.pdf')

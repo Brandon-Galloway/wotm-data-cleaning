@@ -50,7 +50,7 @@ https://www.geeksforgeeks.org/timing-functions-with-decorators-python/
 @OUT dishes @AS reduced_field_dish_data
 @END remove_null_or_redundant_fields
 @BEGIN perform_easy_quality_enhancements
-@IN reduced_field_menu_data
+@IN reduced_field_menu_page_data
 @OUT menus @AS simply_cleaned_menu_data
 @END perform_easy_quality_enhancements
 @BEGIN clean_special_character_issues
@@ -73,16 +73,27 @@ https://www.geeksforgeeks.org/timing-functions-with-decorators-python/
 @OUT menus @AS outlier_addressed_menu_data
 @OUT menu_items @AS outlier_addressed_menu_item_data
 @END address_outlier_values
-@BEGIN recalculate_fields
-@IN outlier_addressed_menu_data
+Repeat
+@BEGIN remove_orphan_records
+@IN fk_updated_menu_data
 @IN reduced_field_menu_page_data
-@IN outlier_address_menu_item_data
-@IN denulled_dish_data
+@IN outlier_addressed_menu_item_data
+@IN special_character_adjusted_dish_data
+@OUT menus @AS re_reduced_menu_data
+@OUT menu_pages @AS re_reduced_menu_page_data
+@OUT menu_items @AS re_reduced_menu_item_data
+@OUT dishes @AS re_reduced_dish_data
+@END remove_orphan_records
+@BEGIN recalculate_fields
+@IN re_reduced_menu_data
+@IN re_reduced_menu_page_data
+@IN re_reduced_menu_item_data
+@IN re_reduced_dish_data
 @OUT menus @AS recalculated_menu_data
 @OUT dishes @AS recalculated_dish_data
 @END recalculate_fields
 @BEGIN verify_core_fields
-@IN outlier_addressed_menu_item_data
+@IN re_reduced_menu_item_data
 @END verify_core_fields
 @BEGIN schema_changes_for_physical_description
 @IN recalculated_menu_data
@@ -92,35 +103,26 @@ https://www.geeksforgeeks.org/timing-functions-with-decorators-python/
 @END schema_changes_for_physical_description
 @BEGIN calculate_dish_menu_appearances
 @IN fk_updated_menu_data
-@IN reduced_field_menu_page_data
-@IN outlier_addressed_menu_item_data
+@IN re_reduced_menu_page_data
+@IN re_reduced_menu_item_data
 @IN recalculated_dish_data
 @OUT dishes @AS appearance_recalculated_dish_data
 @END calculate_dish_menu_appearances
-Repeat
-@BEGIN remove_orphan_records
-@IN fk_updated_menu_data
-@IN reduced_field_menu_page_data
-@IN outlier_addressed_menu_item_data
-@IN appearance_recalculated_dish_data
-@OUT menus @AS re_reduced_menu_data
-@OUT menu_pages @AS re_reduced_menu_page_data
-@OUT menu_items @AS re_reduced_menu_item_data
-@OUT dishes @AS re_reduced_dish_data
-@END remove_orphan_records
 @BEGIN generate_ending_report
-@IN re_reduced_menu_data
+@IN fk_updated_menu_data
 @IN re_reduced_menu_page_data
 @IN re_reduced_menu_item_data
-@IN re_reduced_dish_data
+@IN appearance_recalculated_dish_data
 @OUT ending_data_quality_report @URI file:data/clean/reports/ending_data_quality_report.pdf
 @END generate_ending_report
 Export
 @BEGIN save_cleaned_dataframes
-@IN re_reduced_menu_data
+@IN fk_updated_menu_data
 @IN re_reduced_menu_page_data
 @IN re_reduced_menu_item_data
-@IN re_reduced_dish_data
+@IN appearance_recalculated_dish_data
+@IN menu_descriptions_data
+@IN menu_description_data
 @OUT menus @URI file:data/clean/Menu.csv
 @OUT menu_pages @URI file:data/clean/MenuPage.csv
 @OUT menu_items @URI file:data/clean/MenuItem.csv
