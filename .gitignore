@@ -1,0 +1,8 @@
+/data/*
+!/data/clean/
+/data/clean/*
+!/data/clean/reports/
+
+.idea/
+.ipynb_checkpoints/
+__pycache__/

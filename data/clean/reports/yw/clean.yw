@@ -1,0 +1,226 @@
+This decorator function is Largely formated and informed through these guides
+https://www.geeksforgeeks.org/decorators-in-python/
+https://www.geeksforgeeks.org/timing-functions-with-decorators-python/
+@BEGIN main
+@IN Menu.csv  @URI file:data/Menu.csv
+@IN MenuPage.csv  @URI file:data/MenuPage.csv
+@IN MenuItem.csv  @URI file:data/MenuItem.csv
+@IN Dish.csv  @URI file:data/Dish.csv
+@OUT menus @URI file:data/clean/Menu.csv
+@OUT menu_pages @URI file:data/clean/MenuPage.csv
+@OUT menu_items @URI file:data/clean/MenuItem.csv
+@OUT dishes @URI file:data/clean/Dish.csv
+@OUT menu_descriptions @URI file:data/clean/MenuDescriptions.csv
+@OUT menu_description @URI file:data/clean/MenuDescription.csv
+@OUT starting_data_quality_report @URI file:data/clean/reports/starting_data_quality_report.pdf
+@OUT ending_data_quality_report @URI file:data/clean/reports/ending_data_quality_report.pdf
+@BEGIN import_data_files
+@IN Menu.csv  @URI file:data/Menu.csv
+@IN MenuPage.csv  @URI file:data/MenuPage.csv
+@IN MenuItem.csv  @URI file:data/MenuItem.csv
+@IN Dish.csv  @URI file:data/Dish.csv
+@OUT menus @AS raw_menu_data
+@OUT menu_pages @AS raw_menu_page_data
+@OUT menu_items @AS raw_menu_item_data
+@OUT dishes @AS raw_dish_data
+@END import_data_files
+@BEGIN generate_starting_report
+@IN raw_menu_data
+@IN raw_menu_page_data
+@IN raw_menu_item_data
+@IN raw_dish_data
+@OUT starting_data_quality_report @URI file:data/clean/reports/starting_data_quality_report.pdf
+@END generate_starting_report
+@BEGIN remove_orphan_records
+@IN raw_menu_data
+@IN raw_menu_page_data
+@IN raw_menu_item_data
+@IN raw_dish_data
+@OUT menus @AS reduced_menu_data
+@OUT menu_pages @AS reduced_menu_page_data
+@OUT menu_items @AS reduced_menu_item_data
+@OUT dishes @AS reduced_dish_data
+@END remove_orphan_records
+@BEGIN remove_null_or_redundant_fields
+@IN reduced_menu_data
+@IN reduced_menu_page_data
+@IN reduced_dish_data
+@OUT menus @AS reduced_field_menu_data
+@OUT menu_pages @AS reduced_field_menu_page_data
+@OUT dishes @AS reduced_field_dish_data
+@END remove_null_or_redundant_fields
+@BEGIN perform_easy_quality_enhancements
+@IN reduced_field_menu_data
+@OUT menus @AS simply_cleaned_menu_data
+@END perform_easy_quality_enhancements
+@BEGIN clean_special_character_issues
+@IN simply_cleaned_menu_data
+@IN reduced_field_dish_data
+@OUT menus @AS special_character_adjusted_menu_data
+@OUT dishes @AS special_character_adjusted_dish_data
+@END clean_special_character_issues
+@BEGIN address_null_values
+@IN special_character_adjusted_menu_data
+@IN reduced_menu_item_data
+@IN special_character_adjusted_dish_data
+@OUT menu_items @AS denulled_menu_item_data
+@END address_null_values
+@BEGIN address_outlier_values
+@IN special_character_adjusted_menu_data
+@IN reduced_field_menu_page_data
+@IN denulled_menu_item_data
+@IN special_character_adjusted_dish_data
+@OUT menus @AS outlier_addressed_menu_data
+@OUT menu_items @AS outlier_addressed_menu_item_data
+@END address_outlier_values
+@BEGIN recalculate_fields
+@IN outlier_addressed_menu_data
+@IN reduced_field_menu_page_data
+@IN outlier_address_menu_item_data
+@IN denulled_dish_data
+@OUT menus @AS recalculated_menu_data
+@OUT dishes @AS recalculated_dish_data
+@END recalculate_fields
+@BEGIN verify_core_fields
+@IN outlier_addressed_menu_item_data
+@END verify_core_fields
+@BEGIN schema_changes_for_physical_description
+@IN recalculated_menu_data
+@OUT menus @AS fk_updated_menu_data
+@OUT menu_description @AS menu_description_data
+@OUT menu_descriptions @AS menu_descriptions_data
+@END schema_changes_for_physical_description
+@BEGIN calculate_dish_menu_appearances
+@IN fk_updated_menu_data
+@IN reduced_field_menu_page_data
+@IN outlier_addressed_menu_item_data
+@IN recalculated_dish_data
+@OUT dishes @AS appearance_recalculated_dish_data
+@END calculate_dish_menu_appearances
+Repeat
+@BEGIN remove_orphan_records
+@IN fk_updated_menu_data
+@IN reduced_field_menu_page_data
+@IN outlier_addressed_menu_item_data
+@IN appearance_recalculated_dish_data
+@OUT menus @AS re_reduced_menu_data
+@OUT menu_pages @AS re_reduced_menu_page_data
+@OUT menu_items @AS re_reduced_menu_item_data
+@OUT dishes @AS re_reduced_dish_data
+@END remove_orphan_records
+@BEGIN generate_ending_report
+@IN re_reduced_menu_data
+@IN re_reduced_menu_page_data
+@IN re_reduced_menu_item_data
+@IN re_reduced_dish_data
+@OUT ending_data_quality_report @URI file:data/clean/reports/ending_data_quality_report.pdf
+@END generate_ending_report
+Export
+@BEGIN save_cleaned_dataframes
+@IN re_reduced_menu_data
+@IN re_reduced_menu_page_data
+@IN re_reduced_menu_item_data
+@IN re_reduced_dish_data
+@OUT menus @URI file:data/clean/Menu.csv
+@OUT menu_pages @URI file:data/clean/MenuPage.csv
+@OUT menu_items @URI file:data/clean/MenuItem.csv
+@OUT dishes @URI file:data/clean/Dish.csv
+@OUT menu_descriptions @URI file:data/clean/MenuDescriptions.csv
+@OUT menu_description @URI file:data/clean/MenuDescription.csv
+@END save_cleaned_dataframes
+@END main
+Perform Easy Data Quality Enhancements
+Combine name data under sponsor
+Clean Special Character Issues
+MENU: CURRENCY CURRENCY_SYMBOL
+DISH: NAME
+Remove groupings such as [foo] (foo) "foo"
+strip_inclusions also removes the wrapped content
+Match a little whitespace then (CONTENT) remove all
+Match a little whitespace then (CONTENT) remove just the outside
+Stacks for paren/brackets
+Non-performant: Loop over everything to pop/append
+Handle Paren
+Handle Brackets
+Handle Quotes
+Combine all stack findings
+Apply stack findings
+Apply custom function over the column
+Define regex patterns
+MENU - CURRENCY
+get_special_character_records(menus,'currency')
+MENU - CURRENCY_SYMBOL
+print(set(zip(menus['currency'], menus['currency_symbol'])))
+DISH - NAME
+get_special_character_records(dishes,'name')
+Find null price menu items
+Join to Dishes
+Calculate the final result
+Address Null Values
+MENU: CURRENCY CURRENCY_SYMBOL
+MENU_ITEMS: PRICE
+MENU - CURRENCY & CURRENCY_SYMBOL
+Remove records where both are null
+Would drop far too many menus :(
+menus = menus.dropna(subset=['currency', 'currency_symbol'], how='all')
+print(menus.shape)
+MENU_ITEMS - PRICE
+Find null dated menus
+Join to Pages
+Join to Items
+Join to Dishes
+Calculate the final result
+Address Outlier Values
+MENU: DATE
+MENU_PAGES: FULL_HEIGHT, FULL_WIDTH
+MENU_ITEMS: PRICE
+MENU - DATE
+Address the phase-1 identified outliers (Query 43)
+Set them as null for recalculation
+print(set(menus['date']))
+MENU_PAGES - FULL_HEIGHT
+menu_pages[menu_pages['full_height'].isna()]
+MENU_PAGES - FULL_WIDTH
+menu_pages[menu_pages['full_width'].isna()]
+MENU_ITEMS - PRICE
+menus.loc[(menus['date'] < '1840-01-01') | (menus['date'] > '2024-12-31')]  = np.nan
+Find null dated menus
+Join to Pages
+Calculate the final result
+Join to Pages
+Join to Items
+Calculate unique dish counts
+Merge with menus to update dish counts
+Join to Items
+Join to Pages
+Join to Menus
+Calculate unique dish counts
+Merge with menus to update dish counts
+Join to Items
+Calculate unique dish counts
+Fix odd column names
+Merge with menus to update dish counts
+Recalculate Fields
+MENU: PAGE_COUNT, DISH_COUNT
+MENU_PAGES: PAGE_NUMBER
+MENU_ITEMS:
+DISH: FIRST_APPEARED, LAST_APPEARED, LOWEST_PRICE, HIGHEST_PRICE
+MENU - PAGE_COUNT
+MENU - DISH_COUNT
+DISH: FIRST_APPEARED DISH & LAST_APPEARED
+DISH: LOWEST_PRICE & HIGHEST_PRICE
+Double Verification of Core Fields
+MENU_ITEMS: XPOS, YPOS
+Schema Changes For Physical Description
+Create menu_descriptions table
+Create menu_description table
+Update menu_descriptions to replace the descriptions with a fk to the menu_description table
+Address Invalid updated_at values
+MENU_ITEM - UPDATED_AT
+Recalculate use case adjacent fields
+DISH - MENUS_APPEARED, TIMES_APPEARED
+Join to Items
+Join to Pages
+Join to Menus
+Calculate unique dish counts
+Merge with menus to update dish counts

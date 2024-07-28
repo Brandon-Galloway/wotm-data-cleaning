@@ -1,0 +1,99 @@
+digraph Workflow {
+rankdir=LR
+fontname=Courier; fontsize=18; labelloc=t
+label=main
+subgraph cluster_workflow_box_outer { label=""; color=black; penwidth=2
+subgraph cluster_workflow_box_inner { label=""; color=white
+node[shape=box style=filled fillcolor="#CCFFCC" peripheries=1 fontname=Courier]
+import_data_files
+generate_starting_report
+remove_orphan_records
+remove_null_or_redundant_fields
+perform_easy_quality_enhancements
+clean_special_character_issues
+address_null_values
+address_outlier_values
+recalculate_fields
+verify_core_fields
+schema_changes_for_physical_description
+calculate_dish_menu_appearances
+generate_ending_report
+save_cleaned_dataframes
+edge[fontname=Helvetica]
+import_data_files -> generate_starting_report [label=raw_menu_data]
+import_data_files -> remove_orphan_records [label=raw_menu_data]
+import_data_files -> generate_starting_report [label=raw_menu_page_data]
+import_data_files -> remove_orphan_records [label=raw_menu_page_data]
+import_data_files -> generate_starting_report [label=raw_menu_item_data]
+import_data_files -> remove_orphan_records [label=raw_menu_item_data]
+import_data_files -> generate_starting_report [label=raw_dish_data]
+import_data_files -> remove_orphan_records [label=raw_dish_data]
+remove_orphan_records -> remove_null_or_redundant_fields [label=reduced_menu_data]
+remove_orphan_records -> remove_null_or_redundant_fields [label=reduced_menu_page_data]
+remove_orphan_records -> remove_null_or_redundant_fields [label=reduced_dish_data]
+remove_null_or_redundant_fields -> perform_easy_quality_enhancements [label=reduced_field_menu_data]
+perform_easy_quality_enhancements -> clean_special_character_issues [label=simply_cleaned_menu_data]
+remove_null_or_redundant_fields -> clean_special_character_issues [label=reduced_field_dish_data]
+clean_special_character_issues -> address_null_values [label=special_character_adjusted_menu_data]
+clean_special_character_issues -> address_outlier_values [label=special_character_adjusted_menu_data]
+remove_orphan_records -> address_null_values [label=reduced_menu_item_data]
+clean_special_character_issues -> address_null_values [label=special_character_adjusted_dish_data]
+clean_special_character_issues -> address_outlier_values [label=special_character_adjusted_dish_data]
+remove_null_or_redundant_fields -> address_outlier_values [label=reduced_field_menu_page_data]
+remove_null_or_redundant_fields -> recalculate_fields [label=reduced_field_menu_page_data]
+remove_null_or_redundant_fields -> calculate_dish_menu_appearances [label=reduced_field_menu_page_data]
+remove_null_or_redundant_fields -> remove_orphan_records [label=reduced_field_menu_page_data]
+address_null_values -> address_outlier_values [label=denulled_menu_item_data]
+address_outlier_values -> recalculate_fields [label=outlier_addressed_menu_data]
+address_outlier_values -> verify_core_fields [label=outlier_addressed_menu_item_data]
+address_outlier_values -> calculate_dish_menu_appearances [label=outlier_addressed_menu_item_data]
+address_outlier_values -> remove_orphan_records [label=outlier_addressed_menu_item_data]
+recalculate_fields -> schema_changes_for_physical_description [label=recalculated_menu_data]
+schema_changes_for_physical_description -> calculate_dish_menu_appearances [label=fk_updated_menu_data]
+schema_changes_for_physical_description -> remove_orphan_records [label=fk_updated_menu_data]
+recalculate_fields -> calculate_dish_menu_appearances [label=recalculated_dish_data]
+calculate_dish_menu_appearances -> remove_orphan_records [label=appearance_recalculated_dish_data]
+remove_orphan_records -> generate_ending_report [label=re_reduced_menu_data]
+remove_orphan_records -> save_cleaned_dataframes [label=re_reduced_menu_data]
+remove_orphan_records -> generate_ending_report [label=re_reduced_menu_page_data]
+remove_orphan_records -> save_cleaned_dataframes [label=re_reduced_menu_page_data]
+remove_orphan_records -> generate_ending_report [label=re_reduced_menu_item_data]
+remove_orphan_records -> save_cleaned_dataframes [label=re_reduced_menu_item_data]
+remove_orphan_records -> generate_ending_report [label=re_reduced_dish_data]
+remove_orphan_records -> save_cleaned_dataframes [label=re_reduced_dish_data]
+}}
+subgraph cluster_input_ports_group_outer { label=""; color=white
+subgraph cluster_input_ports_group_inner { label=""; color=white
+node[shape=circle style=filled fillcolor="#FFFFFF" peripheries=1 fontname=Courier width=0.2]
+"Menu.csv_input_port" [label=""]
+"MenuPage.csv_input_port" [label=""]
+"MenuItem.csv_input_port" [label=""]
+"Dish.csv_input_port" [label=""]
+}}
+subgraph cluster_output_ports_group_outer { label=""; color=white
+subgraph cluster_output_ports_group_inner { label=""; color=white
+node[shape=circle style=filled fillcolor="#FFFFFF" peripheries=1 fontname=Courier width=0.2]
+menus_output_port [label=""]
+menu_pages_output_port [label=""]
+menu_items_output_port [label=""]
+dishes_output_port [label=""]
+menu_descriptions_output_port [label=""]
+menu_description_output_port [label=""]
+starting_data_quality_report_output_port [label=""]
+ending_data_quality_report_output_port [label=""]
+}}
+edge[fontname=Helvetica]
+"Menu.csv_input_port" -> import_data_files [label="Menu.csv"]
+"MenuPage.csv_input_port" -> import_data_files [label="MenuPage.csv"]
+"MenuItem.csv_input_port" -> import_data_files [label="MenuItem.csv"]
+"Dish.csv_input_port" -> import_data_files [label="Dish.csv"]
+edge[fontname=Helvetica]
+save_cleaned_dataframes -> menus_output_port [label=menus]
+save_cleaned_dataframes -> menu_pages_output_port [label=menu_pages]
+save_cleaned_dataframes -> menu_items_output_port [label=menu_items]
+save_cleaned_dataframes -> dishes_output_port [label=dishes]
+save_cleaned_dataframes -> menu_descriptions_output_port [label=menu_descriptions]
+save_cleaned_dataframes -> menu_description_output_port [label=menu_description]
+generate_starting_report -> starting_data_quality_report_output_port [label=starting_data_quality_report]
+generate_ending_report -> ending_data_quality_report_output_port [label=ending_data_quality_report]
+}
