@@ -242,6 +242,7 @@ def remove_null_or_redundant_fields(menus, menu_pages, dishes):
 @log_execution
 def perform_easy_quality_enhancements(menus):
     menus['sponsor'] = menus['sponsor'].fillna(menus['name'])
+    menus = menus.drop(columns=['name'])
     return menus
 
 
@@ -370,10 +371,10 @@ def clean_special_character_issues(menus, dishes):
 
 def estimate_null_priced_menu_items(menu_items, dishes):
     # Find null price menu items
-    null_dated_menus = menu_items[menu_items['price'].isna()]
+    null_priced_items = menu_items[menu_items['price'].isna()]
 
     # Join to Dishes
-    result = pd.merge(null_dated_menus[['id', 'dish_id']], dishes[['id', 'lowest_price', 'highest_price']],
+    result = pd.merge(null_priced_items[['id', 'dish_id']], dishes[['id', 'lowest_price', 'highest_price']],
                       left_on='dish_id', right_on='id', how='left')
     result = result.rename(columns={'id_x': 'id'})
 
